@@ -17,8 +17,8 @@ Download an appropriate binary from the [latest release](https://github.com/Octo
 ### Manual Installation
 
 ```sh
-git clone https://github.com/Octogonapus/IAMPolicyHelper
-cd IAMPolicyHelper
+git clone https://github.com/Octogonapus/TerratestLogViewer
+cd TerratestLogViewer
 go build
 go install
 ```
