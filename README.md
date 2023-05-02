@@ -13,7 +13,7 @@ TerratestLogViewer --owner MyOrg --repository myRepo --workflow my_workflow.yml 
 
 ### Binary Installation
 
-Download an appropriate binary from the [latest release](https://github.com/Octogonapus/IAMPolicyHelper/releases/latest).
+Download an appropriate binary from the [latest release](https://github.com/Octogonapus/TerratestLogViewer/releases/latest).
 
 ### Manual Installation
 
