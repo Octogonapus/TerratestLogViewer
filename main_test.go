@@ -1,11 +1,27 @@
 package main
 
 import (
+	"context"
+	"os"
 	"testing"
 
+	"github.com/google/go-github/v52/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/oauth2"
 )
+
+// basic test to check it does not crash. hard to test much else
+func TestGetLogs(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")})
+	tc := oauth2.NewClient(ctx, ts)
+	gh := github.NewClient(tc)
+	logs, err := getLogs(gh, "Octogonapus", "TerratestLogViewer", "test.yml", "main", "test")
+	assert.NotEmpty(t, logs)
+	require.NoError(t, err)
+}
 
 func TestFilterLogs1(t *testing.T) {
 	t.Parallel()

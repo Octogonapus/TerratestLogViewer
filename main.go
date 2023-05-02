@@ -164,7 +164,7 @@ func getLogs(gh *github.Client, owner string, repo string, workflowFilename stri
 		return nil, fmt.Errorf("did not find matching job")
 	}
 
-	_, logsGHResp, err := gh.Actions.GetWorkflowJobLogs(context.Background(), owner, repo, jobID, true)
+	_, logsGHResp, err := gh.Actions.GetWorkflowJobLogs(context.Background(), owner, repo, jobID, false)
 	if err != nil {
 		return nil, err
 	}
