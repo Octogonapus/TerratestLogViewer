@@ -10,6 +10,7 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      actions: read
 
     concurrency:
       group: "test @ ${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
