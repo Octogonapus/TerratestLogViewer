@@ -12,17 +12,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// GET /repos/LeukoMaster/NotificationService/actions/workflows/build.yml/runs
-//	to get the run ID of the workflow you want. need the user to specify the workflow ID (workflow filename)
-// GET /repos/LeukoMaster/NotificationService/actions/runs/4865026717/jobs
-//	to get a JSON object with all the jobs (and steps). then you select the ID of the job you want. need the user to specify the name (e.g. infra_test)
-// GET /repos/LeukoMaster/NotificationService/actions/jobs/13183250949/logs
-//	to get the logs
-// filter the logs by test name. if there is a line without the test name as a prefix, include it in the output if it
-// follows a line with the test name prefix (or if it follows a line which follows a line with the test name prefix)
-
 func main() {
-	// user input
 	owner := flag.String("owner", "", "repository owner")
 	repo := flag.String("repository", "", "repository name")
 	workflowFilename := flag.String("workflow", "", "workflow filename (base filename, not path)")
