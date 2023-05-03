@@ -101,3 +101,21 @@ func TestRemoveTestNamePrefix(t *testing.T) {
 	actual := removeTestNamePrefix(logs, []byte("TestFoo"))
 	assert.Equal(t, []byte("1\nno prefix 2\n3\nno prefix 4\n"), actual)
 }
+
+// A test's failure should be included when filtering for a specific test, even when another test's output precedes it
+func TestTestFailureIncluded(t *testing.T) {
+	t.Parallel()
+	logs := []byte("TestFoo 1\nTestBar 1\n=== NAME  TestFoo\n    foo.go:123:\n") // a real example would have many more lines without a prefix but this should be enough
+	testName := "TestFoo"
+	actual, err := filterLogs([]byte(logs), []byte(testName))
+	require.NoError(t, err)
+	assert.Equal(t, []byte("TestFoo 1\n=== NAME  TestFoo\n    foo.go:123:\n"), actual)
+}
+
+func TestHasTestFailurePrefix(t *testing.T) {
+	t.Parallel()
+	logs := []byte("=== NAME  TestFoo\n")
+	testName := "TestFoo"
+	actual := hasTestFailurePrefix(logs, 0, []byte(testName))
+	assert.True(t, actual)
+}

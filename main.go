@@ -120,7 +120,7 @@ func filterLogs(logs []byte, testName []byte) ([]byte, error) {
 		endOfLineIdx := findNext(logs, i, '\n')
 
 		// if the line has the testName prefix, add the line to filteredLogs
-		if hasPrefix(logs, i, testName) {
+		if hasPrefix(logs, i, testName) || hasTestFailurePrefix(logs, i, testName) {
 			line := logs[i : endOfLineIdx+1]
 			filteredLogs = append(filteredLogs, line...)
 			priorLineMatchedPrefix = true
@@ -145,12 +145,21 @@ func filterLogs(logs []byte, testName []byte) ([]byte, error) {
 
 // Returns whether the given string, starting at the given offset, equals the given prefix for the length of the given prefix.
 func hasPrefix(str []byte, offset int, prefix []byte) bool {
-	for j := 0; j < len(prefix); j++ {
-		if str[offset+j] != prefix[j] {
+	for i := 0; i < len(prefix); i++ {
+		if offset+i >= len(str) || str[offset+i] != prefix[i] {
 			return false
 		}
 	}
 	return true
+}
+
+var testFailurePrefix = []byte("=== NAME  ")
+
+// Returns whether the given string, starting at the given offset, has a prefix which indicates a test failure for a test with the given name
+func hasTestFailurePrefix(str []byte, offset int, testName []byte) bool {
+	hasFailurePrefix := hasPrefix(str, offset, testFailurePrefix)
+	hasTestName := hasPrefix(str, offset+len(testFailurePrefix), testName)
+	return hasFailurePrefix && hasTestName
 }
 
 // Returns the next index of the next given character in the given string, or the last index of the given string.
