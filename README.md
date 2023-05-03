@@ -5,7 +5,7 @@ Filters out a single test's logs from interleaved parallel log output.
 Automatically downloads logs from GitHub Actions.
 
 ```sh
-export GITHUB_TOKEN="my token" # needed for private repositories
+export GITHUB_TOKEN="my token"
 TerratestLogViewer --owner MyOrg --repository myRepo --workflow my_workflow.yml --branch my_branch --job my_job --test TestSomething | less
 ```
 

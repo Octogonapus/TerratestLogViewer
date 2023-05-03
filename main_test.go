@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"os"
+	"os/exec"
 	"testing"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/google/go-github/v52/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -118,4 +120,25 @@ func TestHasTestFailurePrefix(t *testing.T) {
 	testName := "TestFoo"
 	actual := hasTestFailurePrefix(logs, 0, []byte(testName))
 	assert.True(t, actual)
+}
+
+func TestParseRemoteOwnerAndRepo(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	cmd := exec.Command("git", "init", ".")
+	cmd.Dir = dir
+	require.NoError(t, cmd.Run())
+
+	cmd = exec.Command("git", "remote", "add", "origin", "https://github.com/Octogonapus/TerratestLogViewer.git")
+	cmd.Dir = dir
+	require.NoError(t, cmd.Run())
+
+	r, err := git.PlainOpen(dir)
+	require.NoError(t, err)
+
+	owner, repo, err := parseRemoteOwnerAndRepo(r)
+	require.NoError(t, err)
+	assert.Equal(t, "Octogonapus", *owner)
+	assert.Equal(t, "TerratestLogViewer", *repo)
 }

@@ -7,14 +7,18 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"regexp"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/google/go-github/v52/github"
 	"golang.org/x/oauth2"
 )
 
+var gitRegex = regexp.MustCompile(`((git@|http(s)?:\/\/)([\w\.@]+)(\/|:))([\w,\-,\_]+)\/([\w,\-,\_]+)(.git){0,1}((\/){0,1})`)
+
 func main() {
-	owner := flag.String("owner", "", "repository owner")
-	repo := flag.String("repository", "", "repository name")
+	owner := flag.String("owner", "", "Repository owner name. Will be parsed from the local git repository if not specified.")
+	repo := flag.String("repository", "", "Repository name. Will be parsed from the local git repository if not specified.")
 	workflowFilename := flag.String("workflow", "", "workflow filename (base filename, not path)")
 	branch := flag.String("branch", "", "branch name")
 	jobName := flag.String("job", "", "job name (within the workflow file)")
@@ -24,10 +28,21 @@ func main() {
 
 	flag.Parse()
 
-	if len(*owner) == 0 {
+	r, gitErr := git.PlainOpen(".git")
+
+	if len(*owner) == 0 && len(*repo) == 0 {
+		if gitErr != nil {
+			panic(gitErr)
+		}
+		parsedOwner, parsedRepo, err := parseRemoteOwnerAndRepo(r)
+		if err != nil {
+			panic(err)
+		}
+		*owner = *parsedOwner
+		*repo = *parsedRepo
+	} else if len(*owner) == 0 {
 		panic("owner is a required parameter. see usage via --help")
-	}
-	if len(*repo) == 0 {
+	} else if len(*repo) == 0 {
 		panic("repo is a required parameter. see usage via --help")
 	}
 	if len(*workflowFilename) == 0 {
@@ -69,6 +84,23 @@ func main() {
 	}
 
 	fmt.Println(string(logs))
+}
+
+func parseRemoteOwnerAndRepo(r *git.Repository) (*string, *string, error) {
+	remotes, err := r.Remotes()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(remotes) == 1 {
+		urls := remotes[0].Config().URLs
+		matches := gitRegex.FindAllStringSubmatch(urls[0], -1)
+		owner := matches[0][6]
+		repo := matches[0][7]
+		return &owner, &repo, nil
+	} else {
+		return nil, nil, fmt.Errorf("can't parse owner and repo with more than one remote")
+	}
 }
 
 // Returns new logs.
