@@ -24,6 +24,7 @@ func main() {
 	jobName := flag.String("job", "", "job name (within the workflow file)")
 	testName := flag.String("test", "", "Go test name. All log data is returned otherwise.")
 	removePrefix := flag.Bool("remove-prefix", true, "Removes the test name prefix from each log line.")
+	echoConfig := flag.Bool("echo-config", true, "Echoes the parsed/given flags to stdout.")
 	token, hasToken := os.LookupEnv("GITHUB_TOKEN")
 
 	flag.Parse()
@@ -88,6 +89,18 @@ func main() {
 		if *removePrefix {
 			logs = removeTestNamePrefix(logs, []byte(*testName))
 		}
+	}
+
+	if *echoConfig {
+		fmt.Println("Got configuration:")
+		fmt.Printf("owner=%s\n", *owner)
+		fmt.Printf("repo=%s\n", *repo)
+		fmt.Printf("workflow filename=%s\n", *workflowFilename)
+		fmt.Printf("branch=%s\n", *branch)
+		fmt.Printf("job name=%s\n", *jobName)
+		fmt.Printf("test name=%s\n", *testName)
+		fmt.Println("You can turn this message off with --echo-config=false")
+		fmt.Println()
 	}
 
 	fmt.Println(string(logs))
