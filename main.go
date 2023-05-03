@@ -20,7 +20,7 @@ func main() {
 	owner := flag.String("owner", "", "Repository owner name. Will be parsed from the local git repository if not specified.")
 	repo := flag.String("repository", "", "Repository name. Will be parsed from the local git repository if not specified.")
 	workflowFilename := flag.String("workflow", "", "workflow filename (base filename, not path)")
-	branch := flag.String("branch", "", "branch name")
+	branch := flag.String("branch", "", "Branch name. Will be parsed from the local git repository if not specified.")
 	jobName := flag.String("job", "", "job name (within the workflow file)")
 	testName := flag.String("test", "", "Go test name. All log data is returned otherwise.")
 	removePrefix := flag.Bool("remove-prefix", true, "Removes the test name prefix from each log line.")
@@ -49,7 +49,14 @@ func main() {
 		panic("workflowFilename is a required parameter. see usage via --help")
 	}
 	if len(*branch) == 0 {
-		panic("branch is a required parameter. see usage via --help")
+		if gitErr != nil {
+			panic(gitErr)
+		}
+		parsedBranch, err := parseBranch(r)
+		if err != nil {
+			panic(err)
+		}
+		*branch = parsedBranch
 	}
 	if len(*jobName) == 0 {
 		panic("jobName is a required parameter. see usage via --help")
@@ -101,6 +108,17 @@ func parseRemoteOwnerAndRepo(r *git.Repository) (*string, *string, error) {
 	} else {
 		return nil, nil, fmt.Errorf("can't parse owner and repo with more than one remote")
 	}
+}
+
+func parseBranch(r *git.Repository) (string, error) {
+	ref, err := r.Head()
+	if err != nil {
+		return "", err
+	}
+	if !ref.Name().IsBranch() {
+		return "", fmt.Errorf("can't parse branch because git HEAD is not a branch")
+	}
+	return ref.Name().Short(), nil
 }
 
 // Returns new logs.

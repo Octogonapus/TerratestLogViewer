@@ -142,3 +142,27 @@ func TestParseRemoteOwnerAndRepo(t *testing.T) {
 	assert.Equal(t, "Octogonapus", *owner)
 	assert.Equal(t, "TerratestLogViewer", *repo)
 }
+
+func TestParseBranch(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+
+	cmd := exec.Command("git", "init", ".")
+	cmd.Dir = dir
+	require.NoError(t, cmd.Run())
+
+	cmd = exec.Command("git", "checkout", "-b", "myBranchName")
+	cmd.Dir = dir
+	require.NoError(t, cmd.Run())
+
+	cmd = exec.Command("git", "commit", "--allow-empty", "-m", "msg")
+	cmd.Dir = dir
+	require.NoError(t, cmd.Run())
+
+	r, err := git.PlainOpen(dir)
+	require.NoError(t, err)
+
+	branch, err := parseBranch(r)
+	require.NoError(t, err)
+	assert.Equal(t, "myBranchName", branch)
+}
