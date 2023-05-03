@@ -89,7 +89,15 @@ func TestFilterLogsNoMatchingLines(t *testing.T) {
 }
 
 func TestRemoveTimestampPrefix1(t *testing.T) {
+	t.Parallel()
 	logs := []byte("2023-05-02T19:31:15.2539162Z Done in 219ms.")
 	actual := removeTimestampPrefix(logs)
 	assert.Equal(t, []byte("Done in 219ms."), actual)
+}
+
+func TestRemoveTestNamePrefix(t *testing.T) {
+	t.Parallel()
+	logs := []byte("TestFoo 1\nno prefix 2\nTestFoo 3\nno prefix 4\n")
+	actual := removeTestNamePrefix(logs, []byte("TestFoo"))
+	assert.Equal(t, []byte("1\nno prefix 2\n3\nno prefix 4\n"), actual)
 }

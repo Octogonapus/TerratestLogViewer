@@ -19,6 +19,7 @@ func main() {
 	branch := flag.String("branch", "", "branch name")
 	jobName := flag.String("job", "", "job name (within the workflow file)")
 	testName := flag.String("test", "", "Go test name. All log data is returned otherwise.")
+	removePrefix := flag.Bool("remove-prefix", true, "Removes the test name prefix from each log line.")
 	token, hasToken := os.LookupEnv("GITHUB_TOKEN")
 
 	flag.Parse()
@@ -61,6 +62,10 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
+		if *removePrefix {
+			logs = removeTestNamePrefix(logs, []byte(*testName))
+		}
 	}
 
 	fmt.Println(string(logs))
@@ -75,6 +80,25 @@ func removeTimestampPrefix(logs []byte) []byte {
 		endOfLineIdx := findNext(logs, endOfTimestampIdx+1, '\n')
 		line := logs[endOfTimestampIdx+1 : endOfLineIdx+1]
 		newLogs = append(newLogs, line...)
+		i = endOfLineIdx + 1
+	}
+	return newLogs
+}
+
+// Returns new logs.
+// Removes the given test name from the start of each log line if it is present.
+func removeTestNamePrefix(logs []byte, testName []byte) []byte {
+	newLogs := []byte{}
+	for i := 0; i < len(logs); {
+		endOfLineIdx := findNext(logs, i, '\n')
+		if hasPrefix(logs, i, testName) {
+			endOfPrefixIdx := i + len(testName) + 1 // +1 because of a space following the test name
+			line := logs[endOfPrefixIdx : endOfLineIdx+1]
+			newLogs = append(newLogs, line...)
+		} else {
+			line := logs[i : endOfLineIdx+1]
+			newLogs = append(newLogs, line...)
+		}
 		i = endOfLineIdx + 1
 	}
 	return newLogs
