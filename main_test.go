@@ -139,8 +139,8 @@ func TestParseRemoteOwnerAndRepo(t *testing.T) {
 
 	owner, repo, err := parseRemoteOwnerAndRepo(r)
 	require.NoError(t, err)
-	assert.Equal(t, "Octogonapus", *owner)
-	assert.Equal(t, "TerratestLogViewer", *repo)
+	assert.Equal(t, "Octogonapus", owner)
+	assert.Equal(t, "TerratestLogViewer", repo)
 }
 
 func TestParseBranch(t *testing.T) {

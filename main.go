@@ -38,8 +38,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		*owner = *parsedOwner
-		*repo = *parsedRepo
+		*owner = parsedOwner
+		*repo = parsedRepo
 	} else if len(*owner) == 0 {
 		panic("owner is a required parameter. see usage via --help")
 	} else if len(*repo) == 0 {
@@ -93,10 +93,10 @@ func main() {
 	fmt.Println(string(logs))
 }
 
-func parseRemoteOwnerAndRepo(r *git.Repository) (*string, *string, error) {
+func parseRemoteOwnerAndRepo(r *git.Repository) (string, string, error) {
 	remotes, err := r.Remotes()
 	if err != nil {
-		return nil, nil, err
+		return "", "", err
 	}
 
 	if len(remotes) == 1 {
@@ -104,9 +104,9 @@ func parseRemoteOwnerAndRepo(r *git.Repository) (*string, *string, error) {
 		matches := gitRegex.FindAllStringSubmatch(urls[0], -1)
 		owner := matches[0][6]
 		repo := matches[0][7]
-		return &owner, &repo, nil
+		return owner, repo, nil
 	} else {
-		return nil, nil, fmt.Errorf("can't parse owner and repo with more than one remote")
+		return "", "", fmt.Errorf("can't parse owner and repo with more than one remote")
 	}
 }
 
