@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/google/go-github/v52/github"
@@ -25,6 +26,7 @@ func main() {
 	testName := flag.String("test", "", "Go test name. All log data is returned otherwise.")
 	removePrefix := flag.Bool("remove-prefix", true, "Removes the test name prefix from each log line.")
 	echoConfig := flag.Bool("echo-config", true, "Echoes the parsed/given flags to stdout.")
+	summary := flag.Bool("summary", false, "Outputs only a summary of passed/failed tests.")
 	token, hasToken := os.LookupEnv("GITHUB_TOKEN")
 
 	flag.Parse()
@@ -80,6 +82,11 @@ func main() {
 
 	logs = removeTimestampPrefix(logs)
 
+	if *summary {
+		fmt.Println(string(parseSummary(logs)))
+		return
+	}
+
 	if len(*testName) > 0 {
 		logs, err = filterLogs(logs, []byte(*testName))
 		if err != nil {
@@ -104,6 +111,19 @@ func main() {
 	}
 
 	fmt.Println(string(logs))
+}
+
+func parseSummary(logs []byte) []byte {
+	newLogs := []byte{}
+	for i := 0; i < len(logs); {
+		endOfLineIdx := findNext(logs, i, '\n')
+		line := string(logs[i : endOfLineIdx+1])
+		if strings.Contains(line, "--- PASS") || strings.Contains(line, "--- FAIL") {
+			newLogs = append(newLogs, []byte(line)...)
+		}
+		i = endOfLineIdx + 1
+	}
+	return newLogs
 }
 
 func parseRemoteOwnerAndRepo(r *git.Repository) (string, string, error) {

@@ -6,6 +6,14 @@ Automatically downloads logs from GitHub Actions.
 
 ```sh
 export GITHUB_TOKEN="my token"
+
+# Git state can be pulled from your shell context
+TerratestLogViewer ---workflow my_workflow.yml --job my_job --test TestSomething | less
+
+# Print a summary of test results with no test logs
+TerratestLogViewer ---workflow my_workflow.yml --job my_job --summary
+
+# Fully specified
 TerratestLogViewer --owner MyOrg --repository myRepo --workflow my_workflow.yml --branch my_branch --job my_job --test TestSomething | less
 ```
 
