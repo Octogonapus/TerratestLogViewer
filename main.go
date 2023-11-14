@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -31,11 +32,15 @@ func main() {
 
 	flag.Parse()
 
-	r, gitErr := git.PlainOpen(".git")
+	dir, err := findGitDir()
+	if err != nil {
+		panic(fmt.Errorf("failed to find git dir: %w", err))
+	}
+	r, gitErr := git.PlainOpen(dir)
 
 	if len(*owner) == 0 && len(*repo) == 0 {
 		if gitErr != nil {
-			panic(gitErr)
+			panic(fmt.Errorf("failed to open git repo: %w", gitErr))
 		}
 		parsedOwner, parsedRepo, err := parseRemoteOwnerAndRepo(r)
 		if err != nil {
@@ -53,7 +58,7 @@ func main() {
 	}
 	if len(*branch) == 0 {
 		if gitErr != nil {
-			panic(gitErr)
+			panic(fmt.Errorf("failed to open git repo: %w", gitErr))
 		}
 		parsedBranch, err := parseBranch(r)
 		if err != nil {
@@ -111,6 +116,31 @@ func main() {
 	}
 
 	fmt.Println(string(logs))
+}
+
+func findGitDir() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	for {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			return "", err
+		}
+
+		for _, entry := range entries {
+			if entry.IsDir() && entry.Name() == ".git" {
+				return filepath.Join(dir, entry.Name()), nil
+			}
+		}
+
+		dir = filepath.Dir(dir)
+		if dir == "/" {
+			return "", fmt.Errorf("did not find .git folder before reaching filesystem root")
+		}
+	}
 }
 
 func parseSummary(logs []byte) []byte {
